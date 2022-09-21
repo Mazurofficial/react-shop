@@ -1,25 +1,47 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useReducer } from 'react';
 
 const setDefaultValue = () => {
    const userTimer = localStorage.getItem('timer');
    return userTimer ? +userTimer : 0;
 };
 
+const countReducer = (state, action) => {
+   if (action.type === 'START') {
+      return {
+         ...state,
+         isCounting: true,
+      };
+   }
+   if (action.type === 'STOP') {
+      return {
+         ...state,
+         isCounting: false,
+      };
+   }
+   if (action.type === 'RESET') {
+      return {
+         timer: 0,
+         isCounting: false,
+      };
+   }
+   if (action.type === 'TICK') {
+      return {
+         ...state,
+         timer: state.timer + 1,
+      };
+   }
+   return state;
+};
+
 export default function Timer() {
-   const [timer, setTimer] = useState(setDefaultValue());
-   const [isCounting, setIsCounting] = useState(false);
-   const timerIdRef = useRef(null);
+   const [{ timer, isCounting }, dispatch] = useReducer(countReducer, {
+      timer: setDefaultValue(),
+      isCounting: false,
+   });
+
+   //    const [timer, setTimer] = useState(setDefaultValue());
+   //    const [isCounting, setIsCounting] = useState(false);
    //    const startTimer = setInterval(() => setTimer(timer + 1), 1000);
-   const startTimer = () => {
-      setIsCounting(true);
-   };
-   const stopTimer = () => {
-      setIsCounting(false);
-   };
-   const resetTimer = () => {
-      setIsCounting(false);
-      setTimer(0);
-   };
 
    useEffect(() => {
       localStorage.setItem('timer', timer);
@@ -27,12 +49,13 @@ export default function Timer() {
 
    useEffect(() => {
       if (isCounting) {
-         timerIdRef.current = setInterval(() => {
-            setTimer((prevTimer) => prevTimer + 1);
+         let timerId = null;
+         timerId = setInterval(() => {
+            dispatch({ type: 'TICK' });
          }, 1000);
          return () => {
-            timerIdRef.current && clearInterval(timerIdRef.current);
-            timerIdRef.current = null;
+            timerId && clearInterval(timerId);
+            timerId = null;
          };
       }
    }, [isCounting]);
@@ -41,9 +64,18 @@ export default function Timer() {
       <>
          {timer}
          <br />
-         <button onClick={startTimer}>Start timer</button>
-         <button onClick={stopTimer}>Stop timer</button>
-         <button onClick={resetTimer}>Reset timer</button>
+         {isCounting ? (
+            <button onClick={() => dispatch({ type: 'STOP' })}>
+               Stop timer
+            </button>
+         ) : (
+            <button onClick={() => dispatch({ type: 'START' })}>
+               Start timer
+            </button>
+         )}
+         <button onClick={() => dispatch({ type: 'RESET' })}>
+            Reset timer
+         </button>
       </>
    );
 }
