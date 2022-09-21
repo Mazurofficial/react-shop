@@ -61,9 +61,12 @@ export default function Timer() {
    }, [isCounting]);
 
    return (
-      <>
-         {timer}
-         <br />
+      <div
+         style={{
+            margin: '100px',
+         }}
+      >
+         <h2>{timer}</h2>
          {isCounting ? (
             <button onClick={() => dispatch({ type: 'STOP' })}>
                Stop timer
@@ -76,6 +79,6 @@ export default function Timer() {
          <button onClick={() => dispatch({ type: 'RESET' })}>
             Reset timer
          </button>
-      </>
+      </div>
    );
 }
